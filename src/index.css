@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+	.markdown-content {
+		@apply space-y-4;
+	}
+
+	.markdown-content h1 {
+		@apply mt-6 text-3xl font-bold text-slate-900 dark:text-slate-100;
+	}
+
+	.markdown-content h2 {
+		@apply mt-6 text-2xl font-bold text-slate-900 dark:text-slate-100;
+	}
+
+	.markdown-content h3,
+	.markdown-content h4 {
+		@apply mt-4 text-xl font-semibold text-slate-900 dark:text-slate-100;
+	}
+
+	.markdown-content p {
+		@apply leading-8 text-slate-700 dark:text-slate-200;
+	}
+
+	.markdown-content ul,
+	.markdown-content ol {
+		@apply ml-6 list-outside space-y-1;
+	}
+
+	.markdown-content ul {
+		@apply list-disc;
+	}
+
+	.markdown-content ol {
+		@apply list-decimal;
+	}
+
+	.markdown-content a {
+		@apply font-medium text-emerald-700 underline decoration-emerald-400 underline-offset-4 hover:text-emerald-600 dark:text-emerald-300 dark:decoration-emerald-500;
+	}
+
+	.markdown-content blockquote {
+		@apply border-l-4 border-emerald-400 bg-emerald-50 px-4 py-2 italic text-slate-700 dark:border-emerald-600 dark:bg-emerald-900/20 dark:text-slate-200;
+	}
+
+	.markdown-content :not(pre) > code {
+		@apply rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.9em] text-rose-700 dark:bg-slate-800 dark:text-rose-300;
+	}
+
+	.markdown-content pre {
+		@apply overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 p-4 text-slate-800 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100;
+	}
+
+	.markdown-content pre code {
+		@apply bg-transparent p-0 text-sm;
+	}
+
+	.markdown-content pre code.hljs {
+		display: block;
+		overflow-x: auto;
+		background: transparent;
+		line-height: 1.65;
+	}
+
+	.markdown-content pre code.hljs,
+	.markdown-content pre code .hljs-subst {
+		color: rgb(30 41 59);
+	}
+
+	.dark .markdown-content pre code.hljs,
+	.dark .markdown-content pre code .hljs-subst {
+		color: rgb(226 232 240);
+	}
+
+	.markdown-content pre code .hljs-keyword,
+	.markdown-content pre code .hljs-selector-tag,
+	.markdown-content pre code .hljs-type,
+	.markdown-content pre code .hljs-literal,
+	.markdown-content pre code .hljs-name,
+	.markdown-content pre code .hljs-strong {
+		color: rgb(37 99 235);
+	}
+
+	.dark .markdown-content pre code .hljs-keyword,
+	.dark .markdown-content pre code .hljs-selector-tag,
+	.dark .markdown-content pre code .hljs-type,
+	.dark .markdown-content pre code .hljs-literal,
+	.dark .markdown-content pre code .hljs-name,
+	.dark .markdown-content pre code .hljs-strong {
+		color: rgb(96 165 250);
+	}
+
+	.markdown-content pre code .hljs-string,
+	.markdown-content pre code .hljs-title,
+	.markdown-content pre code .hljs-section,
+	.markdown-content pre code .hljs-attribute,
+	.markdown-content pre code .hljs-symbol,
+	.markdown-content pre code .hljs-bullet,
+	.markdown-content pre code .hljs-addition {
+		color: rgb(5 150 105);
+	}
+
+	.dark .markdown-content pre code .hljs-string,
+	.dark .markdown-content pre code .hljs-title,
+	.dark .markdown-content pre code .hljs-section,
+	.dark .markdown-content pre code .hljs-attribute,
+	.dark .markdown-content pre code .hljs-symbol,
+	.dark .markdown-content pre code .hljs-bullet,
+	.dark .markdown-content pre code .hljs-addition {
+		color: rgb(110 231 183);
+	}
+
+	.markdown-content pre code .hljs-comment,
+	.markdown-content pre code .hljs-quote,
+	.markdown-content pre code .hljs-deletion,
+	.markdown-content pre code .hljs-meta {
+		color: rgb(71 85 105);
+		font-style: italic;
+	}
+
+	.dark .markdown-content pre code .hljs-comment,
+	.dark .markdown-content pre code .hljs-quote,
+	.dark .markdown-content pre code .hljs-deletion,
+	.dark .markdown-content pre code .hljs-meta {
+		color: rgb(148 163 184);
+		font-style: italic;
+	}
+
+	.markdown-content pre code .hljs-number,
+	.markdown-content pre code .hljs-regexp,
+	.markdown-content pre code .hljs-variable,
+	.markdown-content pre code .hljs-template-variable,
+	.markdown-content pre code .hljs-link {
+		color: rgb(217 70 239);
+	}
+
+	.dark .markdown-content pre code .hljs-number,
+	.dark .markdown-content pre code .hljs-regexp,
+	.dark .markdown-content pre code .hljs-variable,
+	.dark .markdown-content pre code .hljs-template-variable,
+	.dark .markdown-content pre code .hljs-link {
+		color: rgb(244 114 182);
+	}
+
+	.markdown-content pre code .hljs-function .hljs-title,
+	.markdown-content pre code .hljs-title.function_ {
+		color: rgb(234 88 12);
+	}
+
+	.dark .markdown-content pre code .hljs-function .hljs-title,
+	.dark .markdown-content pre code .hljs-title.function_ {
+		color: rgb(251 146 60);
+	}
+
+	.markdown-content pre code .hljs-built_in,
+	.markdown-content pre code .hljs-class .hljs-title,
+	.markdown-content pre code .hljs-title.class_ {
+		color: rgb(124 58 237);
+	}
+
+	.dark .markdown-content pre code .hljs-built_in,
+	.dark .markdown-content pre code .hljs-class .hljs-title,
+	.dark .markdown-content pre code .hljs-title.class_ {
+		color: rgb(196 181 253);
+	}
+
+	.markdown-content img {
+		@apply my-4 rounded-xl border border-slate-200 dark:border-slate-700;
+	}
+}

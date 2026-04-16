@@ -1,0 +1,42 @@
+import React from "react";
+import { Route, Routes } from "react-router-dom";
+import RequireAdmin from "./components/auth/RequireAdmin";
+import Navbar from "./components/layout/Navbar";
+import ArticleDetailPage from "./pages/ArticleDetailPage";
+import CategoryPage from "./pages/CategoryPage";
+import CreateArticlePage from "./pages/CreateArticlePage";
+import EditArticlePage from "./pages/EditArticlePage";
+import HomePage from "./pages/HomePage";
+import LoginPage from "./pages/LoginPage";
+
+export default function App() {
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+      <Navbar />
+      <main className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/categories/:slug" element={<CategoryPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/articles/new"
+            element={
+              <RequireAdmin>
+                <CreateArticlePage />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/articles/:slug/edit"
+            element={
+              <RequireAdmin>
+                <EditArticlePage />
+              </RequireAdmin>
+            }
+          />
+          <Route path="/articles/:slug" element={<ArticleDetailPage />} />
+        </Routes>
+      </main>
+    </div>
+  );
+}
