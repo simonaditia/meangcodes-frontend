@@ -8,6 +8,7 @@ import CreateArticlePage from "./pages/CreateArticlePage";
 import EditArticlePage from "./pages/EditArticlePage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 export default function App() {
   return (
@@ -35,6 +36,7 @@ export default function App() {
             }
           />
           <Route path="/articles/:slug" element={<ArticleDetailPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
     </div>
