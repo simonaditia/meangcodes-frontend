@@ -39,6 +39,102 @@ export async function fetchLatestArticles() {
   return result.data;
 }
 
+export async function fetchHomepageBundle(options = {}) {
+  const params = new URLSearchParams();
+  if (options.page) {
+    params.set("page", String(options.page));
+  }
+  if (options.limit) {
+    params.set("limit", String(options.limit));
+  }
+  if (options.search) {
+    params.set("search", String(options.search));
+  }
+  if (options.category) {
+    params.set("category", String(options.category));
+  }
+  if (options.trendingLimit) {
+    params.set("trendingLimit", String(options.trendingLimit));
+  }
+  if (options.trendingDays) {
+    params.set("trendingDays", String(options.trendingDays));
+  }
+  if (options.sectionCategoryLimit) {
+    params.set("sectionCategoryLimit", String(options.sectionCategoryLimit));
+  }
+  if (options.sectionArticleLimit) {
+    params.set("sectionArticleLimit", String(options.sectionArticleLimit));
+  }
+
+  const query = params.toString();
+  const result = await apiGet(`/api/homepage/bundle${query ? `?${query}` : ""}`);
+  const data = result.data || {};
+
+  return {
+    featured: data.featured || null,
+    latest: data.latest || [],
+    trending: data.trending || [],
+    categories: data.categories || [],
+    sections: data.sections || [],
+    pagination: data.pagination || {
+      page: options.page || 1,
+      limit: options.limit || 9,
+      totalItems: (data.latest || []).length,
+      totalPages: 1,
+      hasNext: false,
+      hasPrev: false,
+    },
+    meta: result.meta || {
+      trendingWindowDays: options.trendingDays || 45,
+      trendingLimit: options.trendingLimit || 7,
+      sectionCategoryLimit: options.sectionCategoryLimit || 3,
+      sectionArticleLimit: options.sectionArticleLimit || 3,
+    },
+  };
+}
+
+export async function fetchTrendingArticles(options = {}) {
+  const params = new URLSearchParams();
+  if (options.limit) {
+    params.set("limit", String(options.limit));
+  }
+  if (options.days) {
+    params.set("days", String(options.days));
+  }
+
+  const query = params.toString();
+  const result = await apiGet(`/api/articles/trending${query ? `?${query}` : ""}`);
+  return result.data || [];
+}
+
+export async function fetchLatestArticlesByCategory(slug, options = {}) {
+  const params = new URLSearchParams();
+  if (options.page) {
+    params.set("page", String(options.page));
+  }
+  if (options.limit) {
+    params.set("limit", String(options.limit));
+  }
+  if (options.search) {
+    params.set("search", String(options.search));
+  }
+
+  const query = params.toString();
+  const result = await apiGet(`/api/categories/${slug}/articles${query ? `?${query}` : ""}`);
+  return {
+    data: result.data || [],
+    category: result.category || null,
+    pagination: result.pagination || {
+      page: 1,
+      limit: options.limit || 9,
+      totalItems: (result.data || []).length,
+      totalPages: 1,
+      hasNext: false,
+      hasPrev: false,
+    },
+  };
+}
+
 export async function fetchArticleBySlug(slug) {
   const result = await apiGet(`/api/articles/${slug}`);
   return result.data;

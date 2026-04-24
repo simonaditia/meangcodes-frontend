@@ -1,6 +1,7 @@
 import React from "react";
 import { Route, Routes } from "react-router-dom";
 import RequireAdmin from "./components/auth/RequireAdmin";
+import Footer from "./components/layout/Footer";
 import Navbar from "./components/layout/Navbar";
 import ArticleDetailPage from "./pages/ArticleDetailPage";
 import CategoryPage from "./pages/CategoryPage";
@@ -12,9 +13,9 @@ import NotFoundPage from "./pages/NotFoundPage";
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <div className="min-h-screen text-slate-900 dark:text-slate-100">
       <Navbar />
-      <main className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-[1320px] px-4 py-8 sm:px-6 lg:px-8">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/categories/:slug" element={<CategoryPage />} />
@@ -39,6 +40,7 @@ export default function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
+      <Footer />
     </div>
   );
 }

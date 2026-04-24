@@ -1,6 +1,47 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+	:root {
+		--surface-base: 248 250 252;
+		--surface-strong: 255 255 255;
+		--ink-base: 15 23 42;
+		--ink-soft: 71 85 105;
+	}
+
+	.dark {
+		--surface-base: 2 6 23;
+		--surface-strong: 15 23 42;
+		--ink-base: 226 232 240;
+		--ink-soft: 148 163 184;
+	}
+
+	body {
+		font-family: "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+		background-color: rgb(var(--surface-base));
+		color: rgb(var(--ink-base));
+		background-image: radial-gradient(circle at 10% -10%, rgb(251 191 36 / 0.12), transparent 36%),
+			radial-gradient(circle at 100% 0%, rgb(34 211 238 / 0.14), transparent 32%);
+	}
+
+	h1,
+	h2,
+	h3,
+	h4 {
+		font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+		letter-spacing: -0.01em;
+	}
+}
+
+@layer utilities {
+	.font-serif-display {
+		font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+		letter-spacing: -0.015em;
+	}
+}
 
 @layer components {
 	.markdown-content {
