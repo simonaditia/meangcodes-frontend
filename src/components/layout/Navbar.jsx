@@ -37,6 +37,13 @@ export default function Navbar() {
               </NavLink>
             </li>
           ) : null}
+          {isAdmin ? (
+            <li>
+              <NavLink className="text-xs font-semibold uppercase tracking-[0.13em] text-amber-700 hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-200" to="/automation">
+                Automation
+              </NavLink>
+            </li>
+          ) : null}
         </ul>
 
         <div className="flex items-center gap-2">

@@ -7,6 +7,8 @@ import { useSeoMetadata } from "../hooks/useSeoMetadata";
 import { deleteArticle } from "../services/articleService";
 import { useArticleDetail } from "../hooks/useArticleDetail";
 
+const FALLBACK_THUMBNAIL = "https://picsum.photos/seed/meangcodes-detail/1200/630";
+
 function slugifyHeading(value) {
   return String(value || "")
     .toLowerCase()
@@ -240,9 +242,12 @@ export default function ArticleDetailPage() {
 
         <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <img
-            src={article.thumbnail || "https://images.unsplash.com/photo-1498050108023-c5249f4df085"}
+            src={article.thumbnail || FALLBACK_THUMBNAIL}
             alt={article.title}
             className="h-64 w-full object-cover sm:h-80"
+            onError={(event) => {
+              event.currentTarget.src = FALLBACK_THUMBNAIL;
+            }}
           />
 
           <div className="space-y-6 p-6 sm:p-8">

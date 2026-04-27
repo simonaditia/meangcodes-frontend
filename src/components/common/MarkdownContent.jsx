@@ -3,6 +3,8 @@ import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
 
+const FALLBACK_MARKDOWN_IMAGE = "https://picsum.photos/seed/meangcodes-markdown/1280/720";
+
 function toPlainText(node) {
   if (typeof node === "string") {
     return node;
@@ -52,6 +54,17 @@ export default function MarkdownContent({ content, className = "" }) {
       components={{
         h2: headingWithId("h2"),
         h3: headingWithId("h3"),
+        img: ({ src, alt }) => (
+          <img
+            src={src || FALLBACK_MARKDOWN_IMAGE}
+            alt={alt || "Article image"}
+            loading="lazy"
+            className="my-4 h-auto w-full rounded-xl border border-slate-200 object-cover dark:border-slate-700"
+            onError={(event) => {
+              event.currentTarget.src = FALLBACK_MARKDOWN_IMAGE;
+            }}
+          />
+        ),
       }}
     >
       {content || ""}

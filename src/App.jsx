@@ -10,6 +10,7 @@ import EditArticlePage from "./pages/EditArticlePage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import AutomationPage from "./pages/AutomationPage";
 
 export default function App() {
   return (
@@ -33,6 +34,14 @@ export default function App() {
             element={
               <RequireAdmin>
                 <EditArticlePage />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/automation"
+            element={
+              <RequireAdmin>
+                <AutomationPage />
               </RequireAdmin>
             }
           />

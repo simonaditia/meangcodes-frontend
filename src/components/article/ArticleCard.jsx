@@ -1,14 +1,19 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
+const FALLBACK_THUMBNAIL = "https://picsum.photos/seed/meangcodes-thumb/1200/630";
+
 export default function ArticleCard({ article }) {
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900">
       <img
-        src={article.thumbnail || "https://images.unsplash.com/photo-1498050108023-c5249f4df085"}
+        src={article.thumbnail || FALLBACK_THUMBNAIL}
         alt={article.title}
         className="h-48 w-full object-cover"
         loading="lazy"
+        onError={(event) => {
+          event.currentTarget.src = FALLBACK_THUMBNAIL;
+        }}
       />
       <div className="space-y-3 p-5 sm:p-6">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-600 dark:text-emerald-400">

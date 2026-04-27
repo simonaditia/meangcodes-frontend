@@ -209,3 +209,33 @@ export async function deleteUploadedImage(urlOrPath) {
 
   return result;
 }
+
+export async function fetchBuffers(status = "") {
+  const params = new URLSearchParams();
+  if (status) {
+    params.set("status", status);
+  }
+
+  const query = params.toString();
+  const result = await apiGet(`/api/buffers${query ? `?${query}` : ""}`);
+  return result.data || [];
+}
+
+export async function createBuffer(payload) {
+  const result = await apiPost("/api/buffers", payload);
+  return result.data;
+}
+
+export async function updateBuffer(id, payload) {
+  const result = await apiPatch(`/api/buffers/${id}`, payload);
+  return result.data;
+}
+
+export async function deleteBuffer(id) {
+  return apiDelete(`/api/buffers/${id}`);
+}
+
+export async function runAutomation() {
+  const result = await apiPost("/api/automation/run", {});
+  return result.data;
+}
