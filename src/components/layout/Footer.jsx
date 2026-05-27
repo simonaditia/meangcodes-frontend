@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 import { fetchCategories } from "../../services/articleService";
 
 const sponsors = [
-  { name: "Cloud Native Labs", href: "#" },
-  { name: "DevSec Collective", href: "#" },
-  { name: "Code Academy Hub", href: "#" },
+  { name: "MeangCodes1", href: "#" },
+  { name: "MeangCodes2", href: "#" },
+  { name: "MeangCodes3", href: "#" },
 ];
 
 const followLinks = [
@@ -44,7 +44,7 @@ export default function Footer() {
     <footer className="mt-12 border-t border-slate-200 bg-white/90 pb-10 pt-8 dark:border-slate-800 dark:bg-slate-950/80">
       <div className="mx-auto grid w-full max-w-[1320px] gap-8 px-4 sm:px-6 lg:grid-cols-[1.1fr,1fr,1fr] lg:px-8">
         <div className="space-y-3">
-          <h3 className="font-serif-display text-2xl text-slate-900 dark:text-slate-100">Code Atlas</h3>
+          <h3 className="font-serif-display text-2xl text-slate-900 dark:text-slate-100">MeangCodes</h3>
           <p className="max-w-md text-sm leading-7 text-slate-600 dark:text-slate-300">
             Portal edukasi dan blog teknologi dengan kurasi artikel engineering, keamanan, dan praktik pengembangan modern.
           </p>

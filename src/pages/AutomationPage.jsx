@@ -15,6 +15,48 @@ function splitReferences(raw) {
     .filter(Boolean);
 }
 
+function splitTopics(raw) {
+  return String(raw || "")
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+const AUTOMATION_PREFERENCES_STORAGE_KEY = "meangcodes.automation.preferences";
+
+function loadStoredPreferences() {
+  if (typeof window === "undefined") {
+    return {
+      preferredTopics: "",
+      blockedTopics: "",
+      maxRepeatCount: 2,
+    };
+  }
+
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(AUTOMATION_PREFERENCES_STORAGE_KEY) || "null");
+    if (!parsed || typeof parsed !== "object") {
+      return {
+        preferredTopics: "",
+        blockedTopics: "",
+        maxRepeatCount: 2,
+      };
+    }
+
+    return {
+      preferredTopics: String(parsed.preferredTopics || ""),
+      blockedTopics: String(parsed.blockedTopics || ""),
+      maxRepeatCount: Number(parsed.maxRepeatCount) || 2,
+    };
+  } catch {
+    return {
+      preferredTopics: "",
+      blockedTopics: "",
+      maxRepeatCount: 2,
+    };
+  }
+}
+
 export default function AutomationPage() {
   const [filter, setFilter] = React.useState("");
   const [buffers, setBuffers] = React.useState([]);
@@ -22,6 +64,7 @@ export default function AutomationPage() {
   const [running, setRunning] = React.useState(false);
   const [message, setMessage] = React.useState("");
   const [error, setError] = React.useState("");
+  const [automationPreferences, setAutomationPreferences] = React.useState(() => loadStoredPreferences());
   const [form, setForm] = React.useState({
     titleHint: "",
     topic: "",
@@ -47,6 +90,14 @@ export default function AutomationPage() {
   React.useEffect(() => {
     loadBuffers();
   }, [loadBuffers]);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.setItem(AUTOMATION_PREFERENCES_STORAGE_KEY, JSON.stringify(automationPreferences));
+  }, [automationPreferences]);
 
   async function handleCreate(event) {
     event.preventDefault();
@@ -82,7 +133,11 @@ export default function AutomationPage() {
     setError("");
 
     try {
-      const result = await runAutomation();
+      const result = await runAutomation({
+        preferredTopics: splitTopics(automationPreferences.preferredTopics),
+        blockedTopics: splitTopics(automationPreferences.blockedTopics),
+        maxRepeatCount: Number(automationPreferences.maxRepeatCount) || 2,
+      });
       const slug = result?.article?.slug || "";
       const url = slug ? `/articles/${slug}` : "";
       setMessage(
@@ -156,6 +211,63 @@ export default function AutomationPage() {
             {error}
           </p>
         ) : null}
+      </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-serif-display text-2xl text-slate-900 dark:text-slate-100">Preferensi Variasi Topik</h2>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+              Kontrol ini memengaruhi topik yang dicari OpenRouter saat automasi kosong.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setAutomationPreferences({ preferredTopics: "", blockedTopics: "", maxRepeatCount: 2 })}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            Reset
+          </button>
+        </div>
+
+        <div className="mt-5 grid gap-4 lg:grid-cols-3">
+          <div className="space-y-2 lg:col-span-1">
+            <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">Topik yang diutamakan</label>
+            <textarea
+              rows={4}
+              value={automationPreferences.preferredTopics}
+              onChange={(event) => setAutomationPreferences((prev) => ({ ...prev, preferredTopics: event.target.value }))}
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-emerald-500 focus:ring dark:border-slate-600 dark:bg-slate-900"
+              placeholder="backend performance, database tuning, AI tools"
+            />
+            <p className="text-xs leading-6 text-slate-500 dark:text-slate-400">Diprioritaskan saat AI memilih tema baru.</p>
+          </div>
+
+          <div className="space-y-2 lg:col-span-1">
+            <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">Topik yang dihindari</label>
+            <textarea
+              rows={4}
+              value={automationPreferences.blockedTopics}
+              onChange={(event) => setAutomationPreferences((prev) => ({ ...prev, blockedTopics: event.target.value }))}
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-emerald-500 focus:ring dark:border-slate-600 dark:bg-slate-900"
+              placeholder="serverless, cloud cost optimization"
+            />
+            <p className="text-xs leading-6 text-slate-500 dark:text-slate-400">Akan dihindari kecuali user manual mengisi topik itu langsung.</p>
+          </div>
+
+          <div className="space-y-2 lg:col-span-1">
+            <label className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-600 dark:text-slate-300">Batas pengulangan topik</label>
+            <input
+              type="number"
+              min={1}
+              max={5}
+              value={automationPreferences.maxRepeatCount}
+              onChange={(event) => setAutomationPreferences((prev) => ({ ...prev, maxRepeatCount: event.target.value }))}
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none ring-emerald-500 focus:ring dark:border-slate-600 dark:bg-slate-900"
+            />
+            <p className="text-xs leading-6 text-slate-500 dark:text-slate-400">Default 2. Semakin kecil, semakin agresif variasinya.</p>
+          </div>
+        </div>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[1.1fr,1.4fr]">

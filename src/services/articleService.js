@@ -235,7 +235,7 @@ export async function deleteBuffer(id) {
   return apiDelete(`/api/buffers/${id}`);
 }
 
-export async function runAutomation() {
-  const result = await apiPost("/api/automation/run", {});
+export async function runAutomation(payload = {}) {
+  const result = await apiPost("/api/automation/run", payload);
   return result.data;
 }

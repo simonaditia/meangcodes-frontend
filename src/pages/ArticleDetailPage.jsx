@@ -18,38 +18,6 @@ function slugifyHeading(value) {
     .replace(/-+/g, "-");
 }
 
-function extractTocFromMarkdown(content) {
-  if (!content) {
-    return [];
-  }
-
-  const lines = content.split(/\r?\n/);
-  const used = {};
-  const toc = [];
-
-  for (const line of lines) {
-    const match = line.match(/^(#{2,3})\s+(.+)/);
-    if (!match) {
-      continue;
-    }
-
-    const depth = match[1].length;
-    const text = match[2].trim().replace(/[#*_`]/g, "");
-    if (!text) {
-      continue;
-    }
-
-    const base = slugifyHeading(text) || "section";
-    const seen = used[base] || 0;
-    used[base] = seen + 1;
-    const id = seen === 0 ? base : `${base}-${seen + 1}`;
-
-    toc.push({ depth, text, id });
-  }
-
-  return toc;
-}
-
 function formatDate(value) {
   if (!value) {
     return "Baru saja";
@@ -72,6 +40,8 @@ export default function ArticleDetailPage() {
   const [deleting, setDeleting] = React.useState(false);
   const [actionError, setActionError] = React.useState("");
   const [toast, setToast] = React.useState(null);
+  const [tocItems, setTocItems] = React.useState([]);
+  const contentRef = React.useRef(null);
 
   const tags = React.useMemo(() => {
     if (!article) {
@@ -96,7 +66,21 @@ export default function ArticleDetailPage() {
     return window.location.href;
   }, [slug]);
 
-  const tocItems = React.useMemo(() => extractTocFromMarkdown(article?.content || ""), [article?.content]);
+  React.useEffect(() => {
+    const container = contentRef.current;
+    if (!container) {
+      setTocItems([]);
+      return;
+    }
+
+    const headings = Array.from(container.querySelectorAll("h2, h3")).map((heading) => ({
+      depth: Number(heading.tagName.slice(1)),
+      text: heading.textContent?.trim() || "",
+      id: heading.id,
+    }));
+
+    setTocItems(headings.filter((item) => item.text && item.id));
+  }, [article?.content]);
 
   const sameAuthorArticles = React.useMemo(() => {
     return (relatedArticles || []).filter((entry) => entry.authorId === article?.authorId).slice(0, 3);
@@ -105,7 +89,7 @@ export default function ArticleDetailPage() {
   useSeoMetadata(
     article
       ? {
-          title: `${article.title} | EduTech Portal`,
+          title: `${article.title} | MeangCodes`,
           description: article.content?.replace(/[#*_`>\[\]()!-]/g, " ").slice(0, 160),
           keywords: tags.join(", "),
           ogTitle: article.title,
@@ -158,7 +142,7 @@ export default function ArticleDetailPage() {
   }
 
   function jumpToToc(id) {
-    const target = document.getElementById(id);
+    const target = contentRef.current?.querySelector(`#${CSS.escape(id)}`) || document.getElementById(id);
     if (!target) {
       return;
     }
@@ -285,7 +269,7 @@ export default function ArticleDetailPage() {
 
             {actionError ? <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">{actionError}</p> : null}
 
-            <div className="text-base leading-8 text-slate-700 dark:text-slate-200">
+            <div ref={contentRef} className="text-base leading-8 text-slate-700 dark:text-slate-200">
               <MarkdownContent content={article.content} className="markdown-content" />
             </div>
 
@@ -302,7 +286,7 @@ export default function ArticleDetailPage() {
           </div>
         </article>
 
-        <aside className="space-y-4">
+        <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
             <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-600 dark:text-slate-300">Table of Contents</h2>
             {tocItems.length === 0 ? (
@@ -311,15 +295,18 @@ export default function ArticleDetailPage() {
               <ul className="mt-3 space-y-2">
                 {tocItems.map((item) => (
                   <li key={item.id}>
-                    <button
-                      type="button"
-                      onClick={() => jumpToToc(item.id)}
-                      className={`w-full text-left text-sm leading-6 text-slate-700 hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300 ${
+                    <a
+                      href={`#${item.id}`}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        jumpToToc(item.id);
+                      }}
+                      className={`block w-full text-left text-sm leading-6 text-slate-700 hover:text-emerald-700 dark:text-slate-200 dark:hover:text-emerald-300 ${
                         item.depth === 3 ? "pl-4 text-slate-500 dark:text-slate-400" : ""
                       }`}
                     >
                       {item.text}
-                    </button>
+                    </a>
                   </li>
                 ))}
               </ul>
