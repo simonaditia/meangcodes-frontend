@@ -1,51 +1,79 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import ArticleGrid from "../components/article/ArticleGrid";
-import { fetchHomepageBundle } from "../services/articleService";
+import { fetchHomepageBundle, getCachedHomepageBundle } from "../services/articleService";
 
 export default function HomePage() {
   const [searchInput, setSearchInput] = React.useState("");
   const [searchKeyword, setSearchKeyword] = React.useState("");
   const [selectedCategory, setSelectedCategory] = React.useState("");
   const [currentPage, setCurrentPage] = React.useState(1);
-  const [articles, setArticles] = React.useState([]);
-  const [pagination, setPagination] = React.useState({
-    page: 1,
-    limit: 9,
-    totalItems: 0,
-    totalPages: 1,
-    hasNext: false,
-    hasPrev: false,
-  });
-  const [categories, setCategories] = React.useState([]);
-  const [trendingGlobal, setTrendingGlobal] = React.useState([]);
-  const [categorySections, setCategorySections] = React.useState([]);
-  const [featuredArticle, setFeaturedArticle] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
+  const homepageOptions = React.useMemo(
+    () => ({
+      page: currentPage,
+      limit: 9,
+      search: searchKeyword,
+      category: selectedCategory,
+      trendingLimit: 7,
+      trendingDays: 45,
+      sectionCategoryLimit: 3,
+      sectionArticleLimit: 4,
+    }),
+    [currentPage, searchKeyword, selectedCategory]
+  );
+  const cachedBundle = getCachedHomepageBundle(homepageOptions);
+  const [articles, setArticles] = React.useState(cachedBundle?.latest || []);
+  const [pagination, setPagination] = React.useState(
+    cachedBundle?.pagination || {
+      page: 1,
+      limit: 9,
+      totalItems: 0,
+      totalPages: 1,
+      hasNext: false,
+      hasPrev: false,
+    }
+  );
+  const [categories, setCategories] = React.useState(cachedBundle?.categories || []);
+  const [trendingGlobal, setTrendingGlobal] = React.useState(cachedBundle?.trending || []);
+  const [categorySections, setCategorySections] = React.useState(cachedBundle?.sections || []);
+  const [featuredArticle, setFeaturedArticle] = React.useState(cachedBundle?.featured || null);
+  const [loading, setLoading] = React.useState(!cachedBundle);
   const [error, setError] = React.useState("");
   const [portalError, setPortalError] = React.useState("");
-  const [portalLoading, setPortalLoading] = React.useState(true);
+  const [portalLoading, setPortalLoading] = React.useState(!cachedBundle);
 
   React.useEffect(() => {
     let mounted = true;
+    const cached = getCachedHomepageBundle(homepageOptions);
+
+    if (cached) {
+      setArticles(cached.latest || []);
+      setPagination(cached.pagination || {
+        page: 1,
+        limit: 9,
+        totalItems: 0,
+        totalPages: 1,
+        hasNext: false,
+        hasPrev: false,
+      });
+      setCategories(cached.categories || []);
+      setTrendingGlobal(cached.trending || []);
+      setCategorySections(cached.sections || []);
+      setFeaturedArticle(cached.featured || null);
+      setLoading(false);
+      setPortalLoading(false);
+    }
 
     async function loadPortalData() {
-      setLoading(true);
-      setError("");
-      setPortalLoading(true);
-      setPortalError("");
+      if (!cached) {
+        setLoading(true);
+        setError("");
+        setPortalLoading(true);
+        setPortalError("");
+      }
 
       try {
-        const bundle = await fetchHomepageBundle({
-          page: currentPage,
-          limit: 9,
-          search: searchKeyword,
-          category: selectedCategory,
-          trendingLimit: 7,
-          trendingDays: 45,
-          sectionCategoryLimit: 3,
-          sectionArticleLimit: 4,
-        });
+        const bundle = await fetchHomepageBundle(homepageOptions);
 
         if (mounted) {
           setArticles(bundle.latest || []);
@@ -92,7 +120,7 @@ export default function HomePage() {
     return () => {
       mounted = false;
     };
-  }, [currentPage, searchKeyword, selectedCategory]);
+  }, [homepageOptions]);
 
   const compactTrending = React.useMemo(() => {
     return (trendingGlobal || []).slice(1, 7);

@@ -1,17 +1,31 @@
 import React from "react";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import logoMeangCodes from "../../assets/logomeangcodes.png";
 
 export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const { isAuthenticated, isAdmin, user, logout } = useAuth();
 
+  const navigate = useNavigate();
+
+  function handleLogoClick(e) {
+    e.preventDefault();
+    try {
+      if (window?.history && window.history.length > 1) {
+        navigate(-1);
+        return;
+      }
+    } catch {}
+
+    navigate("/");
+  }
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/90 bg-white/90 backdrop-blur-md dark:border-slate-700/80 dark:bg-slate-950/90">
       <nav className="mx-auto flex w-full max-w-[1320px] items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        <Link className="flex items-center gap-3" to="/" aria-label="MeangCodes home">
+        <a href="/" onClick={handleLogoClick} className="flex items-center gap-3" aria-label="MeangCodes home">
           <img
             src={logoMeangCodes}
             alt="MeangCodes logo"
@@ -20,7 +34,7 @@ export default function Navbar() {
           <span className="font-serif-display text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
             MeangCodes
           </span>
-        </Link>
+        </a>
 
         <ul className="hidden items-center gap-6 md:flex">
           <li>

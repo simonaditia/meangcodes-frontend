@@ -1,5 +1,24 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { fetchArticleBySlug } from "../../services/articleService";
+
+const _prefetched = new Set();
+
+export function prefetchArticle(slug, thumbnail) {
+  if (!slug || _prefetched.has(slug)) return;
+  _prefetched.add(slug);
+
+  try {
+    fetchArticleBySlug(slug).catch(() => {});
+  } catch {}
+
+  if (thumbnail) {
+    try {
+      const img = new Image();
+      img.src = thumbnail;
+    } catch {}
+  }
+}
 
 const FALLBACK_THUMBNAIL = "https://picsum.photos/seed/meangcodes-thumb/1200/630";
 
@@ -20,7 +39,13 @@ export default function ArticleCard({ article }) {
           {article.category?.name || "Technology"}
         </p>
         <h3 className="font-serif-display line-clamp-2 text-2xl leading-snug text-slate-900 dark:text-slate-100">
-          <Link to={`/articles/${article.slug}`} className="hover:text-emerald-600 dark:hover:text-emerald-400">
+          <Link
+            to={`/articles/${article.slug}`}
+            className="hover:text-emerald-600 dark:hover:text-emerald-400"
+            onMouseEnter={() => prefetchArticle(article.slug, article.thumbnail)}
+            onFocus={() => prefetchArticle(article.slug, article.thumbnail)}
+            onTouchStart={() => prefetchArticle(article.slug, article.thumbnail)}
+          >
             {article.title}
           </Link>
         </h3>

@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
-import { fetchArticleBySlug, fetchRelatedArticles } from "../services/articleService";
+import {
+  fetchArticleBySlug,
+  fetchRelatedArticles,
+  getCachedArticleDetail,
+} from "../services/articleService";
 
 export function useArticleDetail(slug) {
-  const [article, setArticle] = useState(null);
+  const cachedArticle = slug ? getCachedArticleDetail(slug) : null;
+  const [article, setArticle] = useState(cachedArticle || null);
   const [relatedArticles, setRelatedArticles] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!cachedArticle);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -13,10 +18,18 @@ export function useArticleDetail(slug) {
     }
 
     let mounted = true;
+    const cached = getCachedArticleDetail(slug);
+
+    if (cached) {
+      setArticle(cached);
+      setLoading(false);
+    }
 
     async function loadArticle() {
-      setLoading(true);
-      setError("");
+      if (!cached) {
+        setLoading(true);
+        setError("");
+      }
 
       try {
         const [data, related] = await Promise.all([fetchArticleBySlug(slug), fetchRelatedArticles(slug)]);

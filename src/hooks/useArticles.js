@@ -1,25 +1,44 @@
 import { useEffect, useMemo, useState } from "react";
-import { fetchArticles } from "../services/articleService";
+import { fetchArticles, getCachedArticleList } from "../services/articleService";
 
 export function useArticles(options = {}) {
-  const [articles, setArticles] = useState([]);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 12,
-    totalItems: 0,
-    totalPages: 1,
-    hasNext: false,
-    hasPrev: false,
-  });
-  const [loading, setLoading] = useState(true);
+  const cachedResult = getCachedArticleList(options);
+  const [articles, setArticles] = useState(cachedResult?.data || []);
+  const [pagination, setPagination] = useState(
+    cachedResult?.pagination || {
+      page: 1,
+      limit: 12,
+      totalItems: 0,
+      totalPages: 1,
+      hasNext: false,
+      hasPrev: false,
+    }
+  );
+  const [loading, setLoading] = useState(!cachedResult);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let mounted = true;
+    const cached = getCachedArticleList(options);
+
+    if (cached) {
+      setArticles(cached.data || []);
+      setPagination(cached.pagination || {
+        page: 1,
+        limit: 12,
+        totalItems: 0,
+        totalPages: 1,
+        hasNext: false,
+        hasPrev: false,
+      });
+      setLoading(false);
+    }
 
     async function loadArticles() {
-      setLoading(true);
-      setError("");
+      if (!cached) {
+        setLoading(true);
+        setError("");
+      }
 
       try {
         const result = await fetchArticles(options);

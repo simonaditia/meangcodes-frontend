@@ -1,10 +1,157 @@
 import { API_BASE_URL, apiDelete, apiGet, apiPatch, apiPost, apiPostFormData } from "./api";
 
+const CACHE_TTL_MS = 2 * 60 * 1000;
+const CACHE_STORAGE_PREFIX = "meangcodes:article-cache:";
+
+const homepageBundleCache = new Map();
+const articleDetailCache = new Map();
+const articleListCache = new Map();
+
+function getSessionStorage() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    return window.sessionStorage || null;
+  } catch {
+    return null;
+  }
+}
+
+function createCacheKey(prefix, payload = {}) {
+  return `${prefix}:${JSON.stringify(payload)}`;
+}
+
+function createStorageKey(cacheKey) {
+  return `${CACHE_STORAGE_PREFIX}${cacheKey}`;
+}
+
+function readCacheEntry(cache, key) {
+  const entry = cache.get(key);
+  if (!entry) {
+    const storage = getSessionStorage();
+    if (!storage) {
+      return null;
+    }
+
+    try {
+      const raw = storage.getItem(createStorageKey(key));
+      if (!raw) {
+        return null;
+      }
+
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object" || typeof parsed.expiresAt !== "number") {
+        storage.removeItem(createStorageKey(key));
+        return null;
+      }
+
+      if (Date.now() > parsed.expiresAt) {
+        storage.removeItem(createStorageKey(key));
+        return null;
+      }
+
+      cache.set(key, parsed);
+      return parsed.value;
+    } catch {
+      return null;
+    }
+  }
+
+  if (Date.now() > entry.expiresAt) {
+    cache.delete(key);
+    const storage = getSessionStorage();
+    try {
+      storage?.removeItem(createStorageKey(key));
+    } catch {
+      // Ignore storage cleanup failures.
+    }
+    return null;
+  }
+
+  return entry.value;
+}
+
+function writeCacheEntry(cache, key, value, ttl = CACHE_TTL_MS) {
+  const entry = {
+    value,
+    expiresAt: Date.now() + ttl,
+  };
+
+  cache.set(key, entry);
+
+  const storage = getSessionStorage();
+  if (!storage) {
+    return;
+  }
+
+  try {
+    storage.setItem(createStorageKey(key), JSON.stringify(entry));
+  } catch {
+    // Ignore quota and private mode failures.
+  }
+}
+
+function clearArticleCaches() {
+  homepageBundleCache.clear();
+  articleDetailCache.clear();
+  articleListCache.clear();
+
+  const storage = getSessionStorage();
+  if (!storage) {
+    return;
+  }
+
+  try {
+    const keysToRemove = [];
+    for (let index = 0; index < storage.length; index += 1) {
+      const key = storage.key(index);
+      if (key && key.startsWith(CACHE_STORAGE_PREFIX)) {
+        keysToRemove.push(key);
+      }
+    }
+
+    keysToRemove.forEach((key) => storage.removeItem(key));
+  } catch {
+    // Ignore storage cleanup failures.
+  }
+}
+
+export function getCachedHomepageBundle(options = {}) {
+  return readCacheEntry(homepageBundleCache, createCacheKey("homepage-bundle", options));
+}
+
+export function setCachedHomepageBundle(options = {}, value) {
+  writeCacheEntry(homepageBundleCache, createCacheKey("homepage-bundle", options), value);
+}
+
+export function getCachedArticleDetail(slug) {
+  return readCacheEntry(articleDetailCache, createCacheKey("article-detail", { slug }));
+}
+
+export function setCachedArticleDetail(slug, value) {
+  writeCacheEntry(articleDetailCache, createCacheKey("article-detail", { slug }), value);
+}
+
+export function getCachedArticleList(options = {}) {
+  return readCacheEntry(articleListCache, createCacheKey("article-list", options));
+}
+
+export function setCachedArticleList(options = {}, value) {
+  writeCacheEntry(articleListCache, createCacheKey("article-list", options), value);
+}
+
 function joinUrl(base, path) {
   return `${base.replace(/\/$/, "")}${path}`;
 }
 
 export async function fetchArticles(options = {}) {
+  const cached = getCachedArticleList(options);
+  if (cached) {
+    return cached;
+  }
+
   const params = new URLSearchParams();
   if (options.page) {
     params.set("page", String(options.page));
@@ -21,7 +168,7 @@ export async function fetchArticles(options = {}) {
 
   const query = params.toString();
   const result = await apiGet(`/api/articles${query ? `?${query}` : ""}`);
-  return {
+  const value = {
     data: result.data || [],
     pagination: result.pagination || {
       page: 1,
@@ -32,6 +179,9 @@ export async function fetchArticles(options = {}) {
       hasPrev: false,
     },
   };
+
+  setCachedArticleList(options, value);
+  return value;
 }
 
 export async function fetchLatestArticles() {
@@ -40,6 +190,11 @@ export async function fetchLatestArticles() {
 }
 
 export async function fetchHomepageBundle(options = {}) {
+  const cached = getCachedHomepageBundle(options);
+  if (cached) {
+    return cached;
+  }
+
   const params = new URLSearchParams();
   if (options.page) {
     params.set("page", String(options.page));
@@ -70,7 +225,7 @@ export async function fetchHomepageBundle(options = {}) {
   const result = await apiGet(`/api/homepage/bundle${query ? `?${query}` : ""}`);
   const data = result.data || {};
 
-  return {
+  const value = {
     featured: data.featured || null,
     latest: data.latest || [],
     trending: data.trending || [],
@@ -91,6 +246,9 @@ export async function fetchHomepageBundle(options = {}) {
       sectionArticleLimit: options.sectionArticleLimit || 3,
     },
   };
+
+  setCachedHomepageBundle(options, value);
+  return value;
 }
 
 export async function fetchTrendingArticles(options = {}) {
@@ -136,8 +294,15 @@ export async function fetchLatestArticlesByCategory(slug, options = {}) {
 }
 
 export async function fetchArticleBySlug(slug) {
+  const cached = getCachedArticleDetail(slug);
+  if (cached) {
+    return cached;
+  }
+
   const result = await apiGet(`/api/articles/${slug}`);
-  return result.data;
+  const value = result.data;
+  setCachedArticleDetail(slug, value);
+  return value;
 }
 
 export async function fetchRelatedArticles(slug, limit = 4) {
@@ -157,15 +322,18 @@ export async function fetchAuthors() {
 
 export async function createArticle(payload) {
   const result = await apiPost("/api/articles", payload);
+  clearArticleCaches();
   return result.data;
 }
 
 export async function updateArticle(slug, payload) {
   const result = await apiPatch(`/api/articles/${slug}`, payload);
+  clearArticleCaches();
   return result.data;
 }
 
 export async function deleteArticle(slug) {
+  clearArticleCaches();
   const result = await apiDelete(`/api/articles/${slug}`);
   return result;
 }
